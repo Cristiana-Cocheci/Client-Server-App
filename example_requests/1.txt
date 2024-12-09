@@ -1,0 +1,5 @@
+ex1 casa tare mult bine
+ex1 shuffle buffers closure
+ex3 12 23 34 10
+ex5 anhjdj 1110 1010 01 0
+exit

@@ -1,0 +1,4 @@
+ex6 Hello World
+ex6 Buna ziua
+ex6 abc cba dfg
+exit
