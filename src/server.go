@@ -42,7 +42,8 @@ var mapLock = &sync.Mutex{}
 var lock = &sync.Mutex{}
 
 type Server struct {
-	ln net.Listener
+	ln        net.Listener
+	CloseChan chan bool
 }
 
 func StartServer(server **Server) {
@@ -55,7 +56,7 @@ func StartServer(server **Server) {
 		defer lock.Unlock()
 		if *server == nil {
 			fmt.Println("Creating server instance now.")
-			*server = &Server{ln: ln}
+			*server = &Server{ln: ln, CloseChan: make(chan bool)}
 		} else {
 			fmt.Println("Server already created.")
 		}
