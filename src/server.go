@@ -35,6 +35,10 @@ var request_map = map[string]func([]string) string{
 	"exit": func([]string) string { return "exit" },
 }
 
+var ClientTable = make(map[string]string)
+var CURRENT_ID = 1
+var mapLock = &sync.Mutex{}
+
 var lock = &sync.Mutex{}
 
 type Server struct {
@@ -56,6 +60,32 @@ func StartServer(server **Server) {
 			fmt.Println("Server already created.")
 		}
 	}
+}
+
+func GetClientId(conn net.Conn, fromServer bool) string {
+	mapLock.Lock()
+	defer mapLock.Unlock()
+	var connStr string
+	if fromServer {
+		connStr = conn.RemoteAddr().String()
+	} else {
+		connStr = conn.LocalAddr().String()
+	}
+	id, found := ClientTable[connStr]
+	if found {
+		return id
+	} else {
+		ClientTable[connStr] = fmt.Sprint(CURRENT_ID)
+		CURRENT_ID++
+		return ClientTable[connStr]
+	}
+}
+
+func DeleteClientId(conn net.Conn) {
+	mapLock.Lock()
+	defer mapLock.Unlock()
+	connStr := conn.RemoteAddr().String()
+	delete(ClientTable, connStr)
 }
 
 func StartListening(server **Server) {
@@ -93,8 +123,8 @@ func HandleConnection(conn net.Conn) {
 	}
 
 	// Send response back to client
-	clientAddr := conn.RemoteAddr().String()
-	fmt.Printf("Client %s requested: %s\n", clientAddr, req)
+	clientId := GetClientId(conn, true)
+	fmt.Printf("Client %s requested: %s\n", clientId, req)
 
 	// Send response back to client
 	_, err = conn.Write([]byte(fmt.Sprintf("Message from Server: %s\n", response)))
@@ -119,6 +149,7 @@ func CloseServer(server *Server) {
 }
 
 func CloseConnection(conn net.Conn) {
-	fmt.Printf("S: Closing connection with client %s\n", conn.RemoteAddr().String())
+	fmt.Printf("S: Closing connection with client %s\n", GetClientId(conn, true))
+	DeleteClientId(conn)
 	conn.Close()
 }

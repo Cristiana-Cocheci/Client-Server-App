@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 )
+
+var wd, _ = os.Getwd()
 
 func readRequest() (string, []string) {
 	reader := bufio.NewReader(os.Stdin)
@@ -22,12 +25,12 @@ func readRequest() (string, []string) {
 }
 
 func GetReqNumber(i int) int {
-	var requests_path = "/Users/cricoche/Desktop/fmi/SD/client-server/example_requests/" + fmt.Sprint(i) + ".txt"
+	var requests_path = filepath.Join(wd, "example_requests", fmt.Sprint(i)+".txt")
 	return len(e.LoadRequests(requests_path))
 }
 
 func readRequestFromFile(i int, idx int) (string, []string) {
-	var requests_path = "/Users/cricoche/Desktop/fmi/SD/client-server/example_requests/" + fmt.Sprint(i) + ".txt"
+	var requests_path = filepath.Join(wd, "example_requests", fmt.Sprint(i)+".txt")
 	s := strings.Split(e.LoadRequests(requests_path)[idx], " ")
 	req := s[0]
 	inputList := s[1:]
@@ -42,13 +45,13 @@ func ConnectToServer(i int, readFromFile bool) net.Conn {
 	conn, err := net.Dial("tcp", "localhost:8080")
 	e.PrintError(err)
 
-	client_id := conn.LocalAddr().String()
+	client_id := GetClientId(conn, false)
 	fmt.Printf("Client %s connected to the server!\n", client_id)
 	return conn
 }
 
 func SendRequestToServer(conn net.Conn, i int, idx int, readFromFile bool) {
-	client_id := conn.LocalAddr().String()
+	client_id := GetClientId(conn, false)
 	var req string
 	var inputList []string
 	if readFromFile {
