@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 )
 
@@ -40,6 +41,9 @@ func SolveEx3(args []string) string {
 		num := 0
 		fmt.Sscanf(arg, "%d", &num)
 		numList = append(numList, num)
+	}
+	if len(numList) != int(conf.ArrayLength) {
+		return "Error: Incorrect number of arguments provided, configuration requires " + strconv.FormatInt(conf.ArrayLength, 10) + " arguments\n"
 	}
 	return fmt.Sprint(solveEx3(numList))
 }

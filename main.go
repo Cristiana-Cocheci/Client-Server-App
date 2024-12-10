@@ -5,15 +5,10 @@ import (
 	"client-server/src"
 	"fmt"
 	"net"
-	"os"
-	"path/filepath"
 	"sync"
 )
 
-var wd, _ = os.Getwd()
-var config_path = filepath.Join(wd, "env.txt")
-
-var conf config.Config = config.LoadConfig(config_path)
+var conf config.Config = config.LoadConfig(src.ConfigPath)
 
 func handleExample(server *src.Server) {
 	wg := sync.WaitGroup{}
@@ -24,7 +19,7 @@ func handleExample(server *src.Server) {
 		go func() {
 			fmt.Println("New connection.")
 			defer wg.Done()
-			connList[i] = src.ConnectToServer(i, conf.ReadFromFile)
+			connList[i] = server.ConnectToServer(i, conf.ReadFromFile)
 		}()
 	}
 	wg.Wait()
@@ -35,14 +30,14 @@ func handleExample(server *src.Server) {
 			defer wg.Done()
 			req_number := src.GetReqNumber(i + 1)
 			for j := 0; j < req_number; j++ {
-				src.SendRequestToServer(connList[i], i+1, j, conf.ReadFromFile)
+				server.SendRequestToServer(connList[i], i+1, j, conf.ReadFromFile)
 			}
 
 		}()
 	}
 	wg.Wait()
 
-	src.CloseServer(server)
+	server.CloseServer()
 }
 
 func main() {
@@ -55,6 +50,6 @@ func main() {
 		handleExample(server)
 	} else {
 		<-server.CloseChan
-		src.CloseServer(server)
+		server.CloseServer()
 	}
 }

@@ -9,41 +9,16 @@ import (
 	"sync"
 )
 
-var request_map = map[string]func([]string) string{
-	"Blank": func([]string) string { return "" },
-	"ex1": func(args []string) string {
-		return MixedLetters(args)
-	},
-	"ex3": func(args []string) string {
-		return SolveEx3(args)
-	},
-	"ex5": func(args []string) string {
-		return SolveEx5(args)
-	},
-	"ex6": func(args []string) string {
-		return SolveEx6(args)
-	},
-	"ex7": func(args []string) string {
-		return SolveEx7(args[0])
-	},
-	"ex8": func(args []string) string {
-		return SolveEx8(args)
-	},
-	"ex12": func(args []string) string {
-		return SolveEx12(args)
-	},
-	"exit": func([]string) string { return "exit" },
-}
-
-var ClientTable = make(map[string]string)
 var CURRENT_ID = 1
 var mapLock = &sync.Mutex{}
 
 var lock = &sync.Mutex{}
 
 type Server struct {
-	ln        net.Listener
-	CloseChan chan bool
+	ln          net.Listener
+	CloseChan   chan bool
+	request_map map[string]func([]string) string
+	ClientTable map[string]string
 }
 
 func StartServer(server **Server) {
@@ -56,14 +31,14 @@ func StartServer(server **Server) {
 		defer lock.Unlock()
 		if *server == nil {
 			fmt.Println("Creating server instance now.")
-			*server = &Server{ln: ln, CloseChan: make(chan bool)}
+			*server = &Server{ln: ln, CloseChan: make(chan bool), request_map: REQUEST_MAP, ClientTable: make(map[string]string)}
 		} else {
 			fmt.Println("Server already created.")
 		}
 	}
 }
 
-func GetClientId(conn net.Conn, fromServer bool) string {
+func (server *Server) GetClientId(conn net.Conn, fromServer bool) string {
 	mapLock.Lock()
 	defer mapLock.Unlock()
 	var connStr string
@@ -72,21 +47,21 @@ func GetClientId(conn net.Conn, fromServer bool) string {
 	} else {
 		connStr = conn.LocalAddr().String()
 	}
-	id, found := ClientTable[connStr]
+	id, found := server.ClientTable[connStr]
 	if found {
 		return id
 	} else {
-		ClientTable[connStr] = fmt.Sprint(CURRENT_ID)
+		server.ClientTable[connStr] = fmt.Sprint(CURRENT_ID)
 		CURRENT_ID++
-		return ClientTable[connStr]
+		return server.ClientTable[connStr]
 	}
 }
 
-func DeleteClientId(conn net.Conn) {
+func (server *Server) DeleteClientId(conn net.Conn) {
 	mapLock.Lock()
 	defer mapLock.Unlock()
 	connStr := conn.RemoteAddr().String()
-	delete(ClientTable, connStr)
+	delete(server.ClientTable, connStr)
 }
 
 func StartListening(server **Server) {
@@ -94,12 +69,12 @@ func StartListening(server **Server) {
 		conn, err := (*server).ln.Accept()
 		e.PrintError(err)
 
-		go HandleConnection(conn)
+		go (*server).HandleConnection(conn)
 
 	}
 }
 
-func HandleConnection(conn net.Conn) {
+func (server *Server) HandleConnection(conn net.Conn) {
 	// Read incoming data
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
@@ -115,7 +90,7 @@ func HandleConnection(conn net.Conn) {
 	fmt.Printf("S: Received data: %s\n", buf)
 
 	// Process request
-	responseFunc, exists := request_map[req]
+	responseFunc, exists := server.request_map[req]
 	var response string
 	if exists {
 		response = responseFunc(args)
@@ -124,7 +99,7 @@ func HandleConnection(conn net.Conn) {
 	}
 
 	// Send response back to client
-	clientId := GetClientId(conn, true)
+	clientId := server.GetClientId(conn, true)
 	fmt.Printf("Client %s requested: %s\n", clientId, req)
 
 	// Send response back to client
@@ -133,13 +108,13 @@ func HandleConnection(conn net.Conn) {
 
 	// Close connection if client requested
 	if response == "exit" {
-		CloseConnection(conn)
+		server.CloseConnection(conn)
 	} else {
-		HandleConnection(conn)
+		server.HandleConnection(conn)
 	}
 }
 
-func CloseServer(server *Server) {
+func (server *Server) CloseServer() {
 	if server == nil {
 		fmt.Println("Server is not running.")
 		return
@@ -149,8 +124,8 @@ func CloseServer(server *Server) {
 	os.Exit(0)
 }
 
-func CloseConnection(conn net.Conn) {
-	fmt.Printf("S: Closing connection with client %s\n", GetClientId(conn, true))
-	DeleteClientId(conn)
+func (server *Server) CloseConnection(conn net.Conn) {
+	fmt.Printf("S: Closing connection with client %s\n", server.GetClientId(conn, true))
+	server.DeleteClientId(conn)
 	conn.Close()
 }

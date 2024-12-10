@@ -15,15 +15,17 @@ func processPosition(index int, words []string, result chan string) {
 
 func MixedLetters(wordList []string) string {
 	if len(wordList) == 0 {
-		// http.Error(w, "No words provided", http.StatusBadRequest)
-		return ""
+		return "Error: No words provided"
+	}
+
+	if len(wordList) != int(conf.ArrayLength) {
+		return "Error: Incorrect number of arguments provided, configuration requires " + strconv.FormatInt(conf.ArrayLength, 10) + " arguments\n"
 	}
 
 	length := len(wordList[0])
 	for _, word := range wordList {
 		if len(word) != length {
-			// http.Error(w, "All words must be of the same length", http.StatusBadRequest)
-			return ""
+			return "Error: All words must be of the same length"
 		}
 	}
 

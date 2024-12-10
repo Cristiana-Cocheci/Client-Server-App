@@ -2,12 +2,19 @@ package src
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 )
 
 func SolveEx5(args []string) string {
 	message := ""
-	var list [10]string
+	var list []string
+	if len(args) != int(conf.ArrayLength) {
+		return "Error: Incorrect number of arguments provided, configuration requires " + strconv.FormatInt(conf.ArrayLength, 10) + " arguments\n"
+	}
+	for i := 0; i < int(conf.ArrayLength); i++ {
+		list = append(list, "")
+	}
 	wg := sync.WaitGroup{}
 	for i, arg := range args {
 		wg.Add(1)

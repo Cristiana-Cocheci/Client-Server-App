@@ -33,13 +33,13 @@ Commands accepted by Server:
   * Output: the text encoded with Caesar's Cipher. The direction (left/right) and factor (k) of the encoding are chosen randomly and specified in the output.
   * Example: Hello WOrld -> Key: 21, Direction: LEFT => [Mjqqt BTwqi]
 * ex7 :
-  * Input:
-  * Output: 
-  * Example: 
+  * Input: a string, where, before each letter, there is a number between 1 and 20, that specifies the number of times that letter appears in the actual string.
+  * Output: decoded message
+  * Example: 1G3o1L -> GoooL
 * ex8 :
-  * Input:
-  * Output: 
-  * Example: 13, 7, 12 -> 3
+  * Input: an array of numbers
+  * Output: from the numbers are selected the prime ones; it is returend the sum of the count of their digits
+  * Example: 13, 7, 12 -> 3 (13 -> 2, 7 -> 1)
 * ex12 :
   * Input: an array of integers
   * Output: each number's first digit is double, it is returned the sum of numbers

@@ -8,9 +8,9 @@ import (
 )
 
 type Config struct {
-	ArrayLength   int64
-	ClientsNumber int64
-	ReadFromFile  bool
+	ArrayLength   int64 // required number of parameters for the exercises requireing arrays
+	ClientsNumber int64 // number of cients in example run, for when read from file is true
+	ReadFromFile  bool  // if it should be an interactive server, when false, or run the example, when true
 }
 
 func read_file(path string) string {
