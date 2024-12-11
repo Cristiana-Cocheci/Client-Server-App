@@ -36,3 +36,5 @@ var WD, _ = os.Getwd()
 
 var ConfigPath = filepath.Join(WD, "env.txt")
 var conf = config.LoadConfig(ConfigPath)
+
+var ExampleClientsNumber = 5

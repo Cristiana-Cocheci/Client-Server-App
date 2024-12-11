@@ -14,8 +14,8 @@ func handleExample(server *src.Server) {
 	wg := sync.WaitGroup{}
 	connList := make(map[int]net.Conn)
 
-	wg.Add(int(conf.ClientsNumber))
-	for i := 0; i < int(conf.ClientsNumber); i++ {
+	wg.Add(src.ExampleClientsNumber)
+	for i := 0; i < src.ExampleClientsNumber; i++ {
 		go func() {
 			fmt.Println("New connection.")
 			defer wg.Done()
@@ -24,8 +24,8 @@ func handleExample(server *src.Server) {
 	}
 	wg.Wait()
 
-	wg.Add(int(conf.ClientsNumber))
-	for i := 0; i < int(conf.ClientsNumber); i++ {
+	wg.Add(src.ExampleClientsNumber)
+	for i := 0; i < src.ExampleClientsNumber; i++ {
 		go func() {
 			defer wg.Done()
 			req_number := src.GetReqNumber(i + 1)
@@ -42,7 +42,7 @@ func handleExample(server *src.Server) {
 
 func main() {
 	var server *src.Server
-	src.StartServer(&server)
+	src.CreateServer(&server)
 
 	go src.StartListening(&server)
 

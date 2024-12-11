@@ -16,12 +16,13 @@ var lock = &sync.Mutex{}
 
 type Server struct {
 	ln          net.Listener
-	CloseChan   chan bool
+	CloseChan   chan struct{}
 	request_map map[string]func([]string) string
 	ClientTable map[string]string
+	semaphore   chan struct{}
 }
 
-func StartServer(server **Server) {
+func CreateServer(server **Server) {
 	if *server == nil {
 		// Listen for incoming connections on port 8080
 		ln, err := net.Listen("tcp", ":8080")
@@ -31,7 +32,7 @@ func StartServer(server **Server) {
 		defer lock.Unlock()
 		if *server == nil {
 			fmt.Println("Creating server instance now.")
-			*server = &Server{ln: ln, CloseChan: make(chan bool), request_map: REQUEST_MAP, ClientTable: make(map[string]string)}
+			*server = &Server{ln: ln, CloseChan: make(chan struct{}), request_map: REQUEST_MAP, ClientTable: make(map[string]string), semaphore: make(chan struct{}, conf.ClientsNumber)}
 		} else {
 			fmt.Println("Server already created.")
 		}
@@ -68,6 +69,10 @@ func StartListening(server **Server) {
 	for {
 		conn, err := (*server).ln.Accept()
 		e.PrintError(err)
+		fmt.Printf("Client %s connected to the server!\n", (*server).GetClientId(conn, true))
+		// first time handeling this client, we add it to the semaphore
+		// since the semaphore channel is buffered, when it is full it will block any new connections, until it is freed
+		(*server).semaphore <- struct{}{}
 
 		go (*server).HandleConnection(conn)
 
@@ -78,6 +83,10 @@ func (server *Server) HandleConnection(conn net.Conn) {
 	// Read incoming data
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
+	e.PrintError(err)
+
+	// Send a message to the client acknowledging the request
+	_, err = conn.Write([]byte("Acknowledged request, processing input ...\n"))
 	e.PrintError(err)
 
 	// Convert the buffer to string and process the request
@@ -97,8 +106,6 @@ func (server *Server) HandleConnection(conn net.Conn) {
 	} else {
 		response = "Invalid request"
 	}
-
-	// Send response back to client
 	clientId := server.GetClientId(conn, true)
 	fmt.Printf("Client %s requested: %s\n", clientId, req)
 
@@ -127,5 +134,6 @@ func (server *Server) CloseServer() {
 func (server *Server) CloseConnection(conn net.Conn) {
 	fmt.Printf("S: Closing connection with client %s\n", server.GetClientId(conn, true))
 	server.DeleteClientId(conn)
+	<-server.semaphore //release a client from the semaphore
 	conn.Close()
 }

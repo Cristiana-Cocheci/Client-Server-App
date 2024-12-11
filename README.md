@@ -1,7 +1,7 @@
 # Client-Server-App
 Distributed Systems project
 
-Server is opened on localhost:8080, using tcp through the net package in Go.
+Server is opened on localhost:8080, using tcp through the net package in Go. It can handle a maximum of n concurrent clients at once, which is declared in the env.txt file as ClientsNumber.
 
 Clients can connect using telnet. They need to specify the type of command and then the input. Here is an example:
 
