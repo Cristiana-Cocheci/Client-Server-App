@@ -130,7 +130,6 @@ func (server *Server) CloseServer() {
 		return
 	}
 	fmt.Println("Closing server.")
-	// server.ln.Close()
 	os.Exit(0)
 }
 

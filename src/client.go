@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 func readRequest() (string, []string) {
@@ -73,4 +74,34 @@ func (server *Server) SendRequestToServer(conn net.Conn, i int, idx int, readFro
 	// Print the server's response
 	fmt.Printf("C %s: %s\n", client_id, string(buf[:n]))
 
+}
+
+func (server *Server) HandleExample() {
+	wg := sync.WaitGroup{}
+	connList := make(map[int]net.Conn)
+
+	wg.Add(ExampleClientsNumber)
+	for i := 0; i < ExampleClientsNumber; i++ {
+		go func() {
+			fmt.Println("New connection.")
+			defer wg.Done()
+			connList[i] = server.ConnectToServer(i, conf.ReadFromFile)
+		}()
+	}
+	wg.Wait()
+
+	wg.Add(ExampleClientsNumber)
+	for i := 0; i < ExampleClientsNumber; i++ {
+		go func() {
+			defer wg.Done()
+			req_number := GetReqNumber(i + 1)
+			for j := 0; j < req_number; j++ {
+				server.SendRequestToServer(connList[i], i+1, j, conf.ReadFromFile)
+			}
+
+		}()
+	}
+	wg.Wait()
+
+	server.CloseServer()
 }

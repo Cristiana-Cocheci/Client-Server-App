@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	ArrayLength   int64 // required number of parameters for the exercises requireing arrays
-	ClientsNumber int64 // number of cients in example run, for when read from file is true
+	ClientsNumber int64 // max number of clients connected to the server at once
 	ReadFromFile  bool  // if it should be an interactive server, when false, or run the example, when true
 }
 
