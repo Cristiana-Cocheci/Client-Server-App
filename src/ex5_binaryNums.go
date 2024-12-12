@@ -3,6 +3,7 @@ package src
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -27,7 +28,7 @@ func SolveEx5(args []string) string {
 		}()
 	}
 	wg.Wait()
-	return message + fmt.Sprint(list[:len(args)])
+	return message + strings.Join(list[:len(args)], " ")
 }
 
 func binaryToDecimal(binary string) int {

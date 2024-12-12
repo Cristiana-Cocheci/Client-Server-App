@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	str "strings"
@@ -41,7 +40,6 @@ func LoadConfig(path string) (config Config) {
 		arg, val := str.Split(line, "=")[0], str.Split(line, "=")[1]
 		addValueToConfig(&config, arg, val)
 	}
-	fmt.Printf("Config Loaded\n")
 	return config
 }
 

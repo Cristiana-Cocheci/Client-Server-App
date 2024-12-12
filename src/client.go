@@ -43,8 +43,7 @@ func (server *Server) ConnectToServer(i int, readFromFile bool) net.Conn {
 	conn, err := net.Dial("tcp", "localhost:8080")
 	e.PrintError(err)
 
-	client_id := server.GetClientId(conn, false)
-	fmt.Printf("Client %s connected to the server!\n", client_id)
+	_ = server.GetClientId(conn, false)
 	return conn
 }
 

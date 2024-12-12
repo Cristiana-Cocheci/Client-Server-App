@@ -70,6 +70,9 @@ func StartListening(server **Server) {
 		conn, err := (*server).ln.Accept()
 		e.PrintError(err)
 		fmt.Printf("Client %s connected to the server!\n", (*server).GetClientId(conn, true))
+
+		_, err = conn.Write([]byte(fmt.Sprintf("NOTICE: Server accepts arrays of length <= %d\n", conf.ArrayLength)))
+		e.PrintError(err)
 		// first time handeling this client, we add it to the semaphore
 		// since the semaphore channel is buffered, when it is full it will block any new connections, until it is freed
 		(*server).semaphore <- struct{}{}
