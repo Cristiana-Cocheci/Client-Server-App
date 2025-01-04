@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -77,8 +78,75 @@ func StartListening(server **Server) {
 		// since the semaphore channel is buffered, when it is full it will block any new connections, until it is freed
 		(*server).semaphore <- struct{}{}
 
-		go (*server).HandleConnection(conn)
+		go (*server).HandleConnection2(conn)
 
+	}
+}
+
+func (server *Server) HandleConnection2(conn net.Conn) {
+	// Read incoming data
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	e.PrintError(err)
+
+	input := strings.TrimSpace(string(buf[:n]))
+	parts := strings.Split(input, " ")
+	req := parts[0]
+	var args []string
+	if len(parts) == 2 {
+		// Request of an array processing
+		length, _ := strconv.Atoi(parts[1])
+		n, err := conn.Read(buf)
+		e.PrintError(err)
+		array := strings.Split(strings.TrimSpace(string(buf[:n])), " ")
+		if len(array) != length {
+			_, _ = conn.Write([]byte("Invalid array length\n"))
+		} else {
+			_, _ = conn.Write([]byte("Array received\n"))
+			args = array
+		}
+	} else if len(parts) == 3 {
+		// Request of a matrix processing
+		rows, _ := strconv.Atoi(parts[1])
+		cols, _ := strconv.Atoi(parts[2])
+		for i := 0; i < rows; i++ {
+			n, err := conn.Read(buf)
+			e.PrintError(err)
+			row := strings.Split(strings.TrimSpace(string(buf[:n])), " ")
+			if len(row) != cols {
+				_, _ = conn.Write([]byte("Invalid row length\n"))
+			} else {
+				_, _ = conn.Write([]byte("Row received\n"))
+				args = append(args, strings.Join(row, "; "))
+			}
+			args = append(args, "/")
+		}
+		_, _ = conn.Write([]byte("Matrix received\n"))
+	}
+
+	// Print the incoming data
+	fmt.Printf("S: Received data: %v\n", args)
+
+	// Process request
+	responseFunc, exists := server.request_map[req]
+	var response string
+	if exists {
+		response = responseFunc(args)
+	} else {
+		response = "Invalid request"
+	}
+	clientId := server.GetClientId(conn, true)
+	fmt.Printf("Client %s requested: %s\n", clientId, req)
+
+	// Send response back to client
+	_, err = conn.Write([]byte(fmt.Sprintf("Message from Server: %s\n", response)))
+	e.PrintError(err)
+
+	// Close connection if client requested
+	if response == "exit" {
+		server.CloseConnection(conn)
+	} else {
+		server.HandleConnection2(conn)
 	}
 }
 
