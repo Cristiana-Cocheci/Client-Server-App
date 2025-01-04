@@ -119,7 +119,6 @@ func (server *Server) HandleConnection2(conn net.Conn) {
 				_, _ = conn.Write([]byte("Row received\n"))
 				args = append(args, strings.Join(row, "; "))
 			}
-			args = append(args, "/")
 		}
 		_, _ = conn.Write([]byte("Matrix received\n"))
 	}

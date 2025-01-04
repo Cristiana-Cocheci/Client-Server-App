@@ -7,8 +7,10 @@ Clients can connect using telnet. They need to specify the type of command and t
 
 ```
 > telnet localhost 8080
-> ex6 Hello WOrld
-> ex1 abc def ghi
+> ex6 2
+> Hello WOrld
+> ex1 3
+> abc def ghi
 Message from Server: adg, beh, cfi
 
 ```
