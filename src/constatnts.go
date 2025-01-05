@@ -32,6 +32,9 @@ var REQUEST_MAP = map[string]func([]string) string{
 	"map_reduce_6": func(args []string) string {
 		return mapReduce6(args)
 	},
+	"map_reduce_15": func(args []string) string {
+		return mapReduce15(args)
+	},
 	"exit": func([]string) string { return "exit" },
 }
 

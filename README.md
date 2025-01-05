@@ -3,13 +3,13 @@ Distributed Systems project
 
 Server is opened on localhost:8080, using tcp through the net package in Go. It can handle a maximum of n concurrent clients at once, which is declared in the env.txt file as ClientsNumber.
 
-Clients can connect using telnet. They need to specify the type of command and then the input. Here is an example:
+Clients can connect using telnet. They need to specify the type of command, the number of arrays sent as input and then the input. Here is an example:
 
 ```
 > telnet localhost 8080
-> ex6 2
+> ex6 1
 > Hello WOrld
-> ex1 3
+> ex1 1
 > abc def ghi
 Message from Server: adg, beh, cfi
 
